@@ -16,67 +16,168 @@ app.use(express.urlencoded()); // used to parse data sent using the POST method
 //routes
 app.get("/", function(req, res){
 
-    res.send("it works");
+    res.render("index");
 
 });
 
 
 
-// app.post("/addAuthor", async function(req, res){
-//     // req.body has form info, but is encoded. see the above middleware included to parse it.
-//     let rows = await insertAuthor(req.body);
-//     console.log(rows);
-//     let message = "Author WAS NOT added to the datanase!";
-//     if(rows.affectedRows > 0){
-//         message = "Author successfully added!";
-//     }
-//     res.render("newAuthor", {"message":message});
-
-// });
-
-
-//functions should be in a separate file by convention
-
-// function dbConnection(){
-
-       
-//     let conn = mysql.createConnection({
-//                 host: "cst336db.space",
-//                 user: "cst336_dbUser7",
-//                 password: "fo14c3",
-//                 database:"cst336_db7"
-//       }); //createConnection
-
-
-// return conn;
-
-// }
-
-// function insertAuthor(body){
-//     let conn = dbConnection();
-//     // promise only surrounds async code
+app.get("/productSearch", async function(req, res){
     
-//     return new Promise(function(resolve, reject){
-//         conn.connect(function(err) {
-//             if (err) throw err;
-//             console.log("Connected!");
+    let sqlCategories = await getCategories();
+    let sqlProductNames = await getProductNames();
+    //console.log(sqlCategories);
+    //res.send("it works!");
+    res.render("productSearch", {"categories":sqlCategories, "productName":sqlProductNames}); //"authors":sqlAuthors
 
-//             let sql = `INSERT INTO q_author
-//             (firstName, lastName, sex)
-//             VALUES (?,?,?)`;
+}); //root  
+
+app.get("/products", async function(req, res){
+
+    // let keyword = req.query.keyword;
+    // console.log(keyword);
+    let rows = await getProducts(req.query);  //await needs async and a promise
+    // console.log(rows);
+    res.render("products", {"records": rows});
+
+});
+
+
+app.get("/productInfo", async function(req, res){
+
+    // let keyword = req.query.keyword;
+    console.log("app.get(/productInfo: " + req.query.productId);
+    
+    let rows = await getProductInfo(req.query.productId);  //await needs async and a promise
+    console.log(rows);
+    // res.render("quotes", {"records": rows});
+    //firstName, lastName, dob, dod, sex, profession, country, portrait, biography
+    res.send(rows);
+
+});
+
+
+
+
+function getCategories(){
+    
+    let conn = dbConnection();
+    return new Promise(function(resolve, reject){
+        conn.connect(function(err) {
+           if (err) throw err;
+           console.log("Connected!");
+        
+            let sql = `SELECT DISTINCT category FROM products ORDER BY category`;
+
+            conn.query(sql, function (err, rows, fields) {
+                if (err) throw err;
+                //res.send(rows);
+                conn.end();
+                resolve(rows);
+            });
+        
+        });//connect
+    });//promise
+}//getCats func
+
+function getProductNames(){
+    
+    let conn = dbConnection();
+    return new Promise(function(resolve, reject){
+        conn.connect(function(err) {
+           if (err) throw err;
+           console.log("Connected!");
+        
+            let sql = `SELECT DISTINCT productName FROM products ORDER BY productName`;
+
+            conn.query(sql, function (err, rows, fields) {
+                if (err) throw err;
+                //res.send(rows);
+                resolve(rows);
+            });
+        
+        });//connect
+    });//promise
+}//getLastNames func
+
+function getProductInfo(productId){
+    let prod = productId;
+    console.log("prod = "+ prod);
+    let conn = dbConnection();
+    return new Promise(function(resolve, reject){
+        conn.connect(function(err) {
+           if (err) throw err;
+           console.log("Connected!");
+        
+            let sql = `SELECT * FROM products 
+                    WHERE productId = ${productId}`;
+            console.log("getProductInfo sql: "+ sql);
             
-//             let params = [body.firstName, body.lastName, body.gender]
+            conn.query(sql, function (err, rows, fields) {
+                if (err) throw err;
+                conn.end();
+                resolve(rows);
+            });
+        
+        });//connect
+    });//promise
+}//getAuthorInfo func
 
-//             conn.query(sql, params, function (err, rows, fields) {
-//                 if (err) throw err;
-//                 // res.send(rows);
-//                 conn.end();
-//                 resolve(rows);
-//             });
 
-//         });// connection
-//     });//promise
-// }
+function getProducts(query){
+    
+    let keyword = query.keyword;
+    let category = query.category;
+    let productName = query.productName;
+    let price = query.price;
+    
+    let conn = dbConnection();
+    return new Promise(function(resolve, reject){
+        conn.connect(function(err) {
+           if (err) throw err;
+           console.log("Connected!");
+        
+        let params = [];
+        let sql = `SELECT productName, category, productId, price FROM products 
+                    WHERE productName LIKE '%${keyword}%'`;
+    
+        if (category) {
+            sql += " AND category = ?"; //To prevent sql injection, sql statesment shouldn't have any single quotes
+            params.push(query.category);
+        }
+        
+        if (productName) {
+            sql += " AND productName = ?"; 
+            params.push(query.lastName);
+        }
+        if (price) {
+            sql += " AND price = ?"; 
+            params.push(query.price);
+        }
+                    
+            conn.query(sql, params, function (err, rows, fields) {
+                if (err) throw err;
+                //res.send(rows);
+                conn.end();
+                resolve(rows);
+            });
+        
+        });//connect
+    });//promise
+}//getQuotes func
+
+
+
+//values in red must be updated
+function dbConnection(){
+   let conn = mysql.createConnection({
+                host: "cst336db.space",
+                user: "cst336_dbUser17", // cst336_dbUser
+                password: "v02jzk",    // secret
+                database: "cst336_db17"  // cst336_db
+    }); //createConnection
+    return conn;
+}
 
 
 

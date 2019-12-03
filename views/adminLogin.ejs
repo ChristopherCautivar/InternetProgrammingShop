@@ -1,0 +1,40 @@
+<!DOCTYPE html>  
+<!-- From Lab 10, incomplete, need app.js calls, ctrl-f "login" -->
+<html>
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script>
+            $(document).ready(function() {
+                $("#loginBtn").on("click", function(){
+                    $.ajax({
+                        method: "POST",
+                        url: "/loginProcess",
+                        dataType: "json",
+                        data: { "username":$("#username").val(),
+                                "password":$("#password").val()},
+                        success: function(result,status) {
+                            //alert(result);
+                            if (!result){
+                                alert("Wrong credentials!");
+                            }else{
+                                location.href = "/admin"; //redirects to admin route
+                            }
+                        }
+                    });//ajax
+                }); //click
+            }); //document.ready
+        </script>
+        <title> Admin Login Screen </title>
+    </head>
+    <body>
+        
+        
+        
+            Username: <input type="text" name="username" id="username"> <br>
+            Password: <input type="text" name="password" id="password"> <br>
+            
+            <br>
+            <button id="loginBtn"> Login! </button>
+        
+    </body>
+</html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!-- From Lab 10, incomplete, need app.js calls, change from author to product info, ctrl-f "updateAuthor" -->
+<html>
+    <head>
+        <title> </title>
+    </head>
+    <body>
+        
+        <h1>Update Author</h1>
+        
+        <form method="POST">
+            First Name: <input type="text" name="firstName" value="<%=productInfo.firstName %>"> <br>
+            Last Name: <input type="text" name="lastName" value="<%=productInfo.lastName %>"> <br>
+            
+            <input type="hidden" name="authorId" value="<%=productInfo.authorId %>"
+            <!-- TODO: Add Remaining Fields -->
+            <br>
+            <button> Update Author </button>
+            <%= typeof(message) != "undefined"?message:"" %>
+        </form>
+        
+    </body>
+</html>

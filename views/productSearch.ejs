@@ -1,0 +1,32 @@
+<!-- From Lab 9, incomplete, need app.js calls, change to product info, ctrl-f "index" -->
+<% include partials/header.ejs %> 
+
+    
+    <body>
+        <h1> What would you like to buy? </h1>
+        
+        <form action="/quotes">
+            Keyword: <input type="text" name="keyword"> <br>
+            
+            Category:
+            <select name="category">
+                <option value="">Select One</option>
+                <% categories.forEach(function(i){ %>
+                    <option> <%=i.category %> </option>
+                <% }); %>
+            </select><br>
+            
+            Product Name:
+            <select name="productName">
+                <option value="">Select One</option>
+                <% productName.forEach(function(i){ %>
+                    <option value=<%=i.productName %>> <%=i.productName %> </option>
+                <% }); %>
+            </select><br>
+            
+            <button> Search! </button>
+        </form>
+        <% include partials/footer.ejs %>   
+    </body>
+    
+</html>
