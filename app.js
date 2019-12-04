@@ -1,6 +1,8 @@
 const express = require("express");
 const mysql = require("mysql")
 const app = express();
+const session = require('express-session');
+
 app.set("view engine", "ejs");
 app.use(express.static("public")); //folder for images, css, js
 app.use(express.urlencoded()); // used to parse data sent using the POST method
@@ -20,7 +22,28 @@ app.get("/", function(req, res){
 
 });
 
+app.post("/adminLoginProcess", function(req, res) {
+    if (req.body.username == "admin" && req.body.password == "secret") {
+       req.session.authenticated = true;
+       res.send({"loginSuccess":true});
+    } else {
+       res.send(false);
+    }
+});
 
+app.post("/userLoginProcess", function(req, res) {
+    if (req.body.username == "user1" && req.body.password == "password1") {
+       req.session.authenticated = true;
+       res.send({"loginSuccess":true});
+    } else {
+       res.send(false);
+    }
+});
+
+app.get("/logout", function(req, res){
+    req.session.destroy();
+    res.redirect("/");   //taking user back to login screen
+});
 
 app.get("/productSearch", async function(req, res){
     
