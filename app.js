@@ -115,6 +115,18 @@ app.get("/dbTest", function(req, res){
        });
     });
 });//dbTest
+
+app.post("/stats", async function(req, res) {
+    res.send(await getStats(req.body.command));
+});
+
+app.get("/adminStats", function(req, res){
+
+    res.render("adminStatistics");
+
+});
+
+
 // FUNCTIONS
 function insertProduct(body){
     let conn = dbConnection();
@@ -213,6 +225,33 @@ function deleteProduct(productID){
         });//connect
     });//promise
 }
+
+function getStats(command){
+    
+    let conn = dbConnection();
+    return new Promise(function(resolve, reject){
+        conn.connect(function(err) {
+           if (err) throw err;
+           console.log("Connected!");
+           let sql;
+            if(command == "MAX"){
+                sql = `SELECT MAX(price) FROM products`;
+            } else if(command == "AVG"){
+                sql = `SELECT AVG(price) FROM products`;
+            } else {
+                sql = `SELECT MIN(price) FROM products`;
+            }
+            
+            conn.query(sql, function (err, rows, fields) {
+                if (err) throw err;
+                //res.send(rows);
+                conn.end();
+                resolve(rows);
+            });
+        
+        });//connect
+    });//promise
+}//getStats func
 
 
 
@@ -325,9 +364,9 @@ function getCategories(){
 function dbConnection(){
    let conn = mysql.createConnection({
                 host: "cst336db.space",
-                user: "cst336_dbUser17", // cst336_dbUser
-                password: "v02jzk",    // secret
-                database: "cst336_db17"  // cst336_db
+                user: "cst336_dbUser7", // cst336_dbUser
+                password: "fo14c3",    // secret
+                database: "cst336_db7"  // cst336_db
     }); //createConnection
     return conn;
 }
