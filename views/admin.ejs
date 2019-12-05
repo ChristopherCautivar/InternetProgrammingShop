@@ -11,36 +11,27 @@
         //             if (confirm("Delete Author?") == false){
         //                 event.preventDefault(); //prevent default behavior of link
         //             }
-                        
         //         });
         //     }); //doc ready
-            
             function deleteConfirm(){
-                if (!confirm("Delete Author?")){
+                if (!confirm("Delete Product?")){
                         event.preventDefault(); //prevent default behavior of link
                     }
             }
         </script>
     </head>
     <body>
-        
         <h1> Admin Section </h1>
-        
-        <form action="/addAuthor">
-        <button> Add New Author </button>
+        <form action="/logout">
+        <button> Logout </button>
+        <form action="/addProduct">
+        <button> Add New Product </button>
         </form>
-        
-        <h3> Authors</h3>
-        
-        <% authorList.forEach(function(author){ %>
-            
-            [<a href="/updateAuthor?authorId=<%= author.authorId %>">UPDATE</a>] 
-            [<a onclick="deleteConfirm()" class="removeAuthor" href="/deleteAuthor?authorId=<%= author.authorId %>">DELETE</a>] 
-            
-            <%= author.firstName %>  <%= author.lastName %> <br>
-            
-        
+        <h3> Products</h3>
+        <% productList.forEach(function(productList){ %>
+            [<a href="/updateProduct?productID=<%= productList.productID %>">UPDATE</a>] 
+            [<a onclick="deleteConfirm()" class="removeProduct" href="/deleteProduct?productID=<%= productList.productID %>">DELETE</a>] 
+            <%= productList.productName %>  <%= productList.productID %> <br>
         <% }) %>
-        
     </body>
 </html>

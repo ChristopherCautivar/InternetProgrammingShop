@@ -8,12 +8,12 @@ app.use(express.static("public")); //folder for images, css, js
 app.use(express.urlencoded()); // used to parse data sent using the POST method
 // Recall all middleware for app.use executes every time before routes
 
-// app.use(myMiddleware);
+ app.use(myMiddleware);
 
-// function myMiddleware(req, res, next){
-//     console.log(new Date());
-//     next(); // passes control to back to server to do the next thing.
-// }
+function myMiddleware(req, res, next){
+    console.log(new Date());
+    next(); // passes control to back to server to do the next thing.
+}
 
 //routes
 app.get("/", function(req, res){
@@ -21,175 +21,305 @@ app.get("/", function(req, res){
     res.render("index");
 
 });
+app.get("/userLogin", async function(req, res)
+{
+    res.render("userLogin");
+});
+app.get("/adminLogin", async function(req, res)
+{
+    res.render("adminLogin");
+});
 
+
+
+
+// from lab 10, admin side of page
+app.get("/admin", async function(req, res){
+    console.log("authenticated: ", req.session.authenticated);
+    if (req.session.authenticated){ 
+        let productList = await getproductList();
+        res.render("admin", {"productList":productList});                
+    }else{                                    //if user hasn't authenticated
+        res.render("login");                  //send them to the login screen
+    }
+});
 app.post("/adminLoginProcess", function(req, res) {
-    if (req.body.username == "admin" && req.body.password == "secret") {
+     if (req.body.username == "admin" && req.body.password == "secret") {
        req.session.authenticated = true;
        res.send({"loginSuccess":true});
     } else {
        res.send(false);
     }
 });
-
-app.post("/userLoginProcess", function(req, res) {
-    if (req.body.username == "user1" && req.body.password == "password1") {
-       req.session.authenticated = true;
-       res.send({"loginSuccess":true});
-    } else {
-       res.send(false);
-    }
-});
-
 app.get("/logout", function(req, res){
     req.session.destroy();
     res.redirect("/");   //taking user back to login screen
 });
-
-app.get("/productSearch", async function(req, res){
-    
-    let sqlCategories = await getCategories();
-    let sqlProductNames = await getProductNames();
-    //console.log(sqlCategories);
-    //res.send("it works!");
-    res.render("productSearch", {"categories":sqlCategories, "productName":sqlProductNames}); //"authors":sqlAuthors
-
-}); //root  
-
-app.get("/products", async function(req, res){
-
-    // let keyword = req.query.keyword;
-    // console.log(keyword);
-    let rows = await getProducts(req.query);  //await needs async and a promise
-    // console.log(rows);
-    res.render("products", {"records": rows});
-
+app.get("/addProduct", function(req, res){
+    if (req.session.authenticated){ 
+        res.render("newProduct");
+    }else{                                    //if user hasn't authenticated
+        res.render("login");                  //send them to the login screen
+    }
 });
+app.post("/addProduct", async function(req, res){
+    let rows = await insertProduct(req.body);
+    console.log(rows);
+    // res.send("First Name: " + req.body.firstName);  //When POST method info is stored in req.body
+    let message = "Product WAS NOT added to the database!";
+    if (rows.affectedRows > 0) {
+        message = "Product added to the database!";
+        res.render("newProduct", {"message":message});
+    }
+});
+app.get("/updateProduct", async function(req, res){
+    if (req.session.authenticated){ 
+        let productInfo = await getProductInfo(req.query.productID);
+        console.log(productInfo);
+        res.render("updateProduct", {"productInfo":productInfo});
+    }else{                                    //if user hasn't authenticated
+        res.render("login");                  //send them to the login screen
+    }
+});
+app.post("/updateProduct", async function(req, res){
+    let rows = await updateProduct(req.body);
+    let productInfo = req.body;
+    console.log(rows);
+    // res.send("First Name: " + req.body.firstName);  //When POST method info is stored in req.body
+    let message = "Product WAS NOT updated to the database!";
+    if (rows.affectedRows > 0) {
+        message = "Product updated to the database!";
+        res.render("updateProduct", {"message":message, "productInfo":productInfo});
+    }
+});
+app.get("/deleteProduct", async function(req, res){
+    let rows = await deleteProduct(req.query.productID);
+    console.log(rows);
+    let message = "Product WAS NOT deleted!";
+    if (rows.affectedRows > 0) {
+        message = "Product successfully deleted!";   
+        }
+    let productList = await getproductList();
+    res.render("admin", {"productList":productList});
+});
+app.get("/dbTest", function(req, res){
+    let conn = dbConnection();
+    conn.connect(function(err) {
+       if (err) throw err;
+       console.log("Connected!");
+       //let sql = "SELECT CURDATE()";
+       let sql = "SELECT * FROM products WHERE sex=F";
+       conn.query(sql, function (err, rows, fields) {
+          if (err) throw err;
+          res.send(rows);
+       });
+    });
+});//dbTest
+// FUNCTIONS
+function insertProduct(body){
+    let conn = dbConnection();
+    return new Promise(function(resolve, reject){
+        conn.connect(function(err) {
+            if (err) throw err;
+            console.log("Connected!");
+            let sql = `INSERT INTO products 
+                        (productName, category, price) 
+                        VALUES (?,?,?)`;            // UPDATE HERE
+            let params = [body.productName, body.category, body.price]; //in DB it's sex but on our site its gender
+            conn.query(sql, params, function (err, rows, fields) {
+              if (err) throw err;
+              //res.send(rows);
+              conn.end();
+              resolve(rows);
+           });
+        });//connect
+    });//promise
+}
+function getproductList(){
+    let conn = dbConnection();
+    return new Promise(function(resolve, reject){
+        conn.connect(function(err) {
+            if (err) throw err;
+            console.log("Connected!");
+            let sql = `SELECT productName, productID 
+                        FROM products 
+                        ORDER BY productName`;
+            conn.query(sql, function (err, rows, fields) {
+              if (err) throw err;
+              //res.send(rows);
+              conn.end();
+              resolve(rows);
+           });
+        });//connect
+    });//promise
+}
+function getProductInfo(productID){
+    let conn = dbConnection();
+    return new Promise(function(resolve, reject){
+        conn.connect(function(err) {
+            if (err) throw err;
+            console.log("Connected!");
+            let sql = `SELECT * 
+                        FROM products 
+                        WHERE productID = ?`;
+            conn.query(sql, [productID], function (err, rows, fields) {
+              if (err) throw err;
+              //res.send(rows);
+              conn.end();
+              resolve(rows[0]); //QUERY RETURNS ONLY ONE RECORD
+           });
+        });//connect
+    });//promise
+}
+function updateProduct(body){
+    let conn = dbConnection();
+    return new Promise(function(resolve, reject){
+        conn.connect(function(err) {
+            if (err) throw err;
+            console.log("Connected!");
+            let sql = `UPDATE products 
+                        SET productName = ?, 
+                        description = ?,
+                        category = ?,
+                        amtRemaining = ?,
+                        price = ?,
+                        imageURL = ?,
+                        WHERE productID = ?`;         //UPDATE HERE
+            let params = [body.productName, body.description, body.category, body.amtRemaining, body.price, body.imageURL, body.productID]; //in DB it's sex but on our site its gender
+            conn.query(sql, params, function (err, rows, fields) {
+              if (err) throw err;
+              //res.send(rows);
+              conn.end();
+              resolve(rows);
+           });
+        });//connect
+    });//promise
+}
+function deleteProduct(productID){
+    let conn = dbConnection();
+    return new Promise(function(resolve, reject){
+        conn.connect(function(err) {
+            if (err) throw err;
+            console.log("Connected!");
+            let sql = `DELETE FROM products 
+                        WHERE productID = ?`;
+            let params = [productID]; 
+            conn.query(sql, params, function (err, rows, fields) {
+              if (err) throw err;
+              //res.send(rows);
+              conn.end();
+              resolve(rows);
+           });
+        });//connect
+    });//promise
+}
 
+
+
+// from lab 9 user side of page
+app.get("/product", async function(req, res){
+
+  let rows = await getProduct(req.query);
+  res.render("product", {"records":rows});
+
+});//product
 
 app.get("/productInfo", async function(req, res){
-
-    // let keyword = req.query.keyword;
-    console.log("app.get(/productInfo: " + req.query.productId);
     
-    let rows = await getProductInfo(req.query.productId);  //await needs async and a promise
-    console.log(rows);
-    // res.render("quotes", {"records": rows});
-    //firstName, lastName, dob, dod, sex, profession, country, portrait, biography
-    res.send(rows);
+   let rows = await getProductInfo(req.query.productID);
+  //res.render("product", {"records":rows});
+    res.send(rows)
+});//product
 
-});
-
-
+function getProductInfo(productID){
+    let conn = dbConnection();
+    
+    
+    return new Promise(function(resolve, reject){
+        conn.connect(function(err) {
+           if (err) throw err;
+           console.log("Connected!");
+        
+           let sql = `SELECT * 
+                      FROM product
+                      WHERE productID = ${productID}`;
+            console.log(sql);        
+           conn.query(sql, function (err, rows, fields) {
+              if (err) throw err;
+              //res.send(rows);
+              conn.end();
+              resolve(rows);
+           });
+        
+        });//connect
+    });//promise
+    
+}
+function getProduct(query){
+    
+    let keyword = query.keyword;
+    
+    let conn = dbConnection();
+    
+    return new Promise(function(resolve, reject){
+        conn.connect(function(err) {
+           if (err) throw err;
+           console.log("Connected!");
+        
+           let params = [];
+        
+           let sql = `SELECT * FROM products
+                      WHERE 
+                      products LIKE '%${keyword}%'`; //might use description instead of product
+        
+           if (query.category) { //user selected a category
+              sql += " AND category = ?"; //To prevent SQL injection, SQL statement shouldn't have any product.
+           }
+           params.push(query.category);  
+           if (query.price) { //user selected a category
+              sql += " AND price = ?"; //To prevent SQL injection, SQL statement shouldn't have any product.
+           }
+           params.push(query.price);
+           
+        
+           console.log("SQL:", sql)
+           conn.query(sql, params, function (err, rows, fields) {
+              if (err) throw err;
+              //res.send(rows);
+              conn.end();
+              resolve(rows);
+           });
+        
+        });//connect
+    });//promise
+    
+}//getproduct
 
 
 function getCategories(){
     
     let conn = dbConnection();
+    
     return new Promise(function(resolve, reject){
         conn.connect(function(err) {
            if (err) throw err;
            console.log("Connected!");
         
-            let sql = `SELECT DISTINCT category FROM products ORDER BY category`;
-
-            conn.query(sql, function (err, rows, fields) {
-                if (err) throw err;
-                //res.send(rows);
-                conn.end();
-                resolve(rows);
-            });
+           let sql = `SELECT DISTINCT category 
+                      FROM products
+                      ORDER BY category`;
+        
+           conn.query(sql, function (err, rows, fields) {
+              if (err) throw err;
+              //res.send(rows);
+              conn.end();
+              resolve(rows);
+           });
         
         });//connect
     });//promise
-}//getCats func
-
-function getProductNames(){
     
-    let conn = dbConnection();
-    return new Promise(function(resolve, reject){
-        conn.connect(function(err) {
-           if (err) throw err;
-           console.log("Connected!");
-        
-            let sql = `SELECT DISTINCT productName FROM products ORDER BY productName`;
-
-            conn.query(sql, function (err, rows, fields) {
-                if (err) throw err;
-                //res.send(rows);
-                resolve(rows);
-            });
-        
-        });//connect
-    });//promise
-}//getLastNames func
-
-function getProductInfo(productId){
-    let prod = productId;
-    console.log("prod = "+ prod);
-    let conn = dbConnection();
-    return new Promise(function(resolve, reject){
-        conn.connect(function(err) {
-           if (err) throw err;
-           console.log("Connected!");
-        
-            let sql = `SELECT * FROM products 
-                    WHERE productId = ${productId}`;
-            console.log("getProductInfo sql: "+ sql);
-            
-            conn.query(sql, function (err, rows, fields) {
-                if (err) throw err;
-                conn.end();
-                resolve(rows);
-            });
-        
-        });//connect
-    });//promise
-}//getAuthorInfo func
-
-
-function getProducts(query){
-    
-    let keyword = query.keyword;
-    let category = query.category;
-    let productName = query.productName;
-    let price = query.price;
-    
-    let conn = dbConnection();
-    return new Promise(function(resolve, reject){
-        conn.connect(function(err) {
-           if (err) throw err;
-           console.log("Connected!");
-        
-        let params = [];
-        let sql = `SELECT productName, category, productId, price FROM products 
-                    WHERE productName LIKE '%${keyword}%'`;
-    
-        if (category) {
-            sql += " AND category = ?"; //To prevent sql injection, sql statesment shouldn't have any single quotes
-            params.push(query.category);
-        }
-        
-        if (productName) {
-            sql += " AND productName = ?"; 
-            params.push(query.lastName);
-        }
-        if (price) {
-            sql += " AND price = ?"; 
-            params.push(query.price);
-        }
-                    
-            conn.query(sql, params, function (err, rows, fields) {
-                if (err) throw err;
-                //res.send(rows);
-                conn.end();
-                resolve(rows);
-            });
-        
-        });//connect
-    });//promise
-}//getQuotes func
-
-
+}//getCategories
 
 //values in red must be updated
 function dbConnection(){
