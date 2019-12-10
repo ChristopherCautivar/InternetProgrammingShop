@@ -1,21 +1,27 @@
-<!DOCTYPE html>
 <!-- From Lab 10, incomplete, need app.js calls, change from author to product info, ctrl-f "updateAuthor" -->
-<html>
-    <head>
-        <title> </title>
+<% include partials/header.ejs %> 
     </head>
+    
     <body>
         
-        <h1>Update Author</h1>
+        <h1>Update New Product</h1>
         
         <form method="POST">
-            First Name: <input type="text" name="firstName" value="<%=productInfo.firstName %>"> <br>
-            Last Name: <input type="text" name="lastName" value="<%=productInfo.lastName %>"> <br>
+            Product Name: <input type="text" name="productName" value="<%=productInfo.productName %>"> <br>
             
-            <input type="hidden" name="authorId" value="<%=productInfo.authorId %>"
+            Category: <input type="text" name="category" value="<%=productInfo.category %>"> <br>
             <!-- TODO: Add Remaining Fields -->
+            Description: <textarea name="description" cols="50" height="20"><%=productInfo.description %></textarea>
             <br>
-            <button> Update Author </button>
+            Amount Remaining: <input type="number" name="amtRemaining" value="<%=productInfo.amtRemaining %>"> <br> <!-- int -->
+            Price: <input type="number" name="price" value="<%=productInfo.price %>"> <br> <!-- double -->
+            Image of Store URL: <input type="text" name="imageURL" value="<%=productInfo.imageURL %>"> <br> 
+            
+            <input type="hidden" name="productID" value="<%=productInfo.productID %>" > <br>
+            
+            <br>
+            <button> Update Product! </button>
+            
             <%= typeof(message) != "undefined"?message:"" %>
         </form>
         

@@ -8,8 +8,11 @@ app.use(express.static("public")); //folder for images, css, js
 app.use(express.urlencoded()); // used to parse data sent using the POST method
 // Recall all middleware for app.use executes every time before routes
 
- app.use(myMiddleware);
-
+app.use(session({ 
+    secret: 'keyboard cat', 
+    cookie: { maxAge: 6000000 }}))
+    
+app.use(myMiddleware);
 function myMiddleware(req, res, next){
     console.log(new Date());
     next(); // passes control to back to server to do the next thing.
@@ -40,9 +43,10 @@ app.get("/admin", async function(req, res){
         let productList = await getproductList();
         res.render("admin", {"productList":productList});                
     }else{                                    //if user hasn't authenticated
-        res.render("login");                  //send them to the login screen
+        res.render("index");                  //send them to the login screen
     }
 });
+
 app.post("/adminLoginProcess", function(req, res) {
      if (req.body.username == "admin" && req.body.password == "secret") {
        req.session.authenticated = true;
@@ -51,6 +55,9 @@ app.post("/adminLoginProcess", function(req, res) {
        res.send(false);
     }
 });
+
+
+
 app.get("/logout", function(req, res){
     req.session.destroy();
     res.redirect("/");   //taking user back to login screen
@@ -59,7 +66,7 @@ app.get("/addProduct", function(req, res){
     if (req.session.authenticated){ 
         res.render("newProduct");
     }else{                                    //if user hasn't authenticated
-        res.render("login");                  //send them to the login screen
+        res.render("index");                  //send them to the login screen
     }
 });
 app.post("/addProduct", async function(req, res){
@@ -74,11 +81,11 @@ app.post("/addProduct", async function(req, res){
 });
 app.get("/updateProduct", async function(req, res){
     if (req.session.authenticated){ 
-        let productInfo = await getProductInfo(req.query.productID);
+        let productInfo = await getProductInfo2(req.query.productID);
         console.log(productInfo);
         res.render("updateProduct", {"productInfo":productInfo});
     }else{                                    //if user hasn't authenticated
-        res.render("login");                  //send them to the login screen
+        res.render("index");                  //send them to the login screen
     }
 });
 app.post("/updateProduct", async function(req, res){
@@ -102,19 +109,7 @@ app.get("/deleteProduct", async function(req, res){
     let productList = await getproductList();
     res.render("admin", {"productList":productList});
 });
-app.get("/dbTest", function(req, res){
-    let conn = dbConnection();
-    conn.connect(function(err) {
-       if (err) throw err;
-       console.log("Connected!");
-       //let sql = "SELECT CURDATE()";
-       let sql = "SELECT * FROM products WHERE sex=F";
-       conn.query(sql, function (err, rows, fields) {
-          if (err) throw err;
-          res.send(rows);
-       });
-    });
-});//dbTest
+
 
 app.post("/stats", async function(req, res) {
     res.send(await getStats(req.body.command));
@@ -135,9 +130,9 @@ function insertProduct(body){
             if (err) throw err;
             console.log("Connected!");
             let sql = `INSERT INTO products 
-                        (productName, category, price) 
-                        VALUES (?,?,?)`;            // UPDATE HERE
-            let params = [body.productName, body.category, body.price]; //in DB it's sex but on our site its gender
+                        (productName, category, description, amtRemaining, price, imageURL) 
+                        VALUES (?,?,?,?,?,?)`;            // UPDATE HERE
+            let params = [body.productName, body.category, body.description, body.amtRemaining, body.price, body.imageURL]; //in DB it's sex but on our site its gender
             conn.query(sql, params, function (err, rows, fields) {
               if (err) throw err;
               //res.send(rows);
@@ -165,7 +160,7 @@ function getproductList(){
         });//connect
     });//promise
 }
-function getProductInfo(productID){
+function getProductInfo2(productID){
     let conn = dbConnection();
     return new Promise(function(resolve, reject){
         conn.connect(function(err) {
@@ -178,6 +173,7 @@ function getProductInfo(productID){
               if (err) throw err;
               //res.send(rows);
               conn.end();
+              console.log("here: ", rows[0])
               resolve(rows[0]); //QUERY RETURNS ONLY ONE RECORD
            });
         });//connect
@@ -195,9 +191,10 @@ function updateProduct(body){
                         category = ?,
                         amtRemaining = ?,
                         price = ?,
-                        imageURL = ?,
+                        imageURL = ?
                         WHERE productID = ?`;         //UPDATE HERE
-            let params = [body.productName, body.description, body.category, body.amtRemaining, body.price, body.imageURL, body.productID]; //in DB it's sex but on our site its gender
+            let params = [body.productName, body.description, body.category, body.amtRemaining, body.price, body.imageURL, parseInt(body.productID)]; //in DB it's sex but on our site its gender
+            console.log(params);
             conn.query(sql, params, function (err, rows, fields) {
               if (err) throw err;
               //res.send(rows);
@@ -256,17 +253,17 @@ function getStats(command){
 
 
 // from lab 9 user side of page
-app.get("/product", async function(req, res){
+app.get("/products", async function(req, res){
 
   let rows = await getProduct(req.query);
-  res.render("product", {"records":rows});
+  res.render("products", {"records":rows});
 
 });//product
 
 app.get("/productInfo", async function(req, res){
     
    let rows = await getProductInfo(req.query.productID);
-  //res.render("product", {"records":rows});
+  //res.render("products", {"records":rows});
     res.send(rows)
 });//product
 
@@ -280,7 +277,7 @@ function getProductInfo(productID){
            console.log("Connected!");
         
            let sql = `SELECT * 
-                      FROM product
+                      FROM products
                       WHERE productID = ${productID}`;
             console.log(sql);        
            conn.query(sql, function (err, rows, fields) {

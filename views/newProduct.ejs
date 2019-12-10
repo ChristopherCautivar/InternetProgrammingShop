@@ -1,6 +1,7 @@
 <!-- From Lab 10, incomplete, need app.js calls, change to product info, ctrl-f "newAuthor" -->
 <% include partials/header.ejs %> 
-
+    </head>
+    
     <body>
         
         <h1>Adding a New Product</h1>
@@ -11,6 +12,11 @@
             Category: <input type="text" name="category"> <br>
             <!-- TODO: Add Remaining Fields -->
             Description: <textarea name="description" cols="50" height="20"> </textarea>
+            <br>
+            Amount Remaining: <input type="number" name="amtRemaining"> <br> <!-- int -->
+            Price: <input type="number" name="price"> <br> <!-- double -->
+            Image of Store URL: <input type="text" name="imageURL"> <br> 
+            
             <br>
             <button> Add Product! </button>
             <%= typeof(message) != "undefined"?message:"" %>

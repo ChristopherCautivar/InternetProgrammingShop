@@ -1,7 +1,6 @@
-<!DOCTYPE html>  
+
 <!-- From Lab 10, incomplete, need app.js calls, ctrl-f "login" -->
-<html>
-    <head>
+<% include partials/header.ejs %> 
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
         <script>
             $(document).ready(function() {
@@ -24,11 +23,12 @@
                 }); //click
             }); //document.ready
         </script>
-        <title> User Login Screen </title>
-    </head>
+    </head>        
+    
     <body>
         
-        
+        <title> User Login Screen </title>
+
         
             Username: <input type="text" name="username" id="username"> <br>
             Password: <input type="text" name="password" id="password"> <br>

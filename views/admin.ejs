@@ -1,8 +1,6 @@
-<!DOCTYPE html>
+
 <!-- From Lab 10, incomplete, need app.js calls, ctrl-f "admin" -->
-<html>
-    <head>
-        <title> </title>
+<% include partials/header.ejs %> 
         
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
         <script>
@@ -22,11 +20,15 @@
     </head>
     <body>
         <h1> Admin Section </h1>
+        
         <form action="/logout">
         <button> Logout </button>
+        </form>
+        
         <form action="/addProduct">
         <button> Add New Product </button>
         </form>
+        
         <h3> Products</h3>
         <% productList.forEach(function(productList){ %>
             [<a href="/updateProduct?productID=<%= productList.productID %>">UPDATE</a>] 

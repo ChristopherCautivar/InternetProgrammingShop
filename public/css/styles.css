@@ -1,10 +1,8 @@
 body{
-    text-align:center;
-    display: flex;
-    flex-direction: column;
     min-height: 100%;
     color:white;
-    background-image: url("../img/botback.jpg");
+    margin:50px;
+    background-image: url("../img/parchmentback.jpg");
     background-color: black;
     background-size: cover;
     background-repeat: no-repeat;
@@ -19,16 +17,13 @@ body{
     background: linear-gradient(red, yellow);
 }
 
-.jumbotron {
-    background-color:#edf2f9;
-    color:white;
-}
+
 
 h1 {
-    color:yellow;
+    color:royalblue;
     background-color:black;
     margin-left: 20px;
-    font-family: 'Pacifico', cursive;
+    font-family: 'Courier New', cursive;
 }
 
 #nava {

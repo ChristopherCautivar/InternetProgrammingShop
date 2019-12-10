@@ -1,8 +1,7 @@
-<!DOCTYPE html>  
+
 <!-- From Lab 10, incomplete, need app.js calls, ctrl-f "login" -->
-<html>
-    <head>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<% include partials/header.ejs %> 
+
         <script>
             $(document).ready(function() {
                 $("#loginBtn").on("click", function(){
@@ -24,10 +23,10 @@
                 }); //click
             }); //document.ready
         </script>
-        <title> Admin Login Screen </title>
     </head>
+    
     <body>
-        
+                <title> Admin Login Screen </title>
         
         
             Username: <input type="text" name="username" id="username"> <br>
