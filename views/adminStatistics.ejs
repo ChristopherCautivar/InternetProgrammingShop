@@ -3,7 +3,7 @@
         <script>
             $(document).ready(function() {
                 $(".command").on("click", function(){
-                    label = `${this.id}: `;
+                    label = `${this.id} price: $`;
                     $.ajax({
                         method: "POST",
                         url: "/stats",
