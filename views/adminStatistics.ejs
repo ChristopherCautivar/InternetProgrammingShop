@@ -3,7 +3,7 @@
         <script>
             $(document).ready(function() {
                 $(".command").on("click", function(){
-                    alert(this.id)
+                    label = `${this.id}: `;
                     $.ajax({
                         method: "POST",
                         url: "/stats",
@@ -11,7 +11,8 @@
                         data: { "command":this.id},
                         success: function(result,status) {
                             //alert(result);
-                            alert(result)
+                            label += result["result"];
+                            $("#results").html(label)
                         }
                     });//ajax
                 }); //click

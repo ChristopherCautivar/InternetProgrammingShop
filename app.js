@@ -231,19 +231,23 @@ function getStats(command){
            if (err) throw err;
            console.log("Connected!");
            let sql;
+           let aggregate;
             if(command == "MAX"){
-                sql = `SELECT MAX(price) FROM products`;
+                aggregate = "MAX(price)"
+                sql = `SELECT ${aggregate} FROM products`;
             } else if(command == "AVG"){
-                sql = `SELECT AVG(price) FROM products`;
+                aggregate = "AVG(price)"
             } else {
-                sql = `SELECT MIN(price) FROM products`;
+                aggregate = "MIN(price)"
             }
+            sql = `SELECT ${aggregate} FROM products`;
             
             conn.query(sql, function (err, rows, fields) {
                 if (err) throw err;
                 //res.send(rows);
                 conn.end();
-                resolve(rows);
+                // console.log(rows[0][aggregate]);
+                resolve({"result":rows[0][aggregate]});
             });
         
         });//connect
@@ -306,7 +310,7 @@ function getProduct(query){
         
            let sql = `SELECT * FROM products
                       WHERE 
-                      products LIKE '%${keyword}%'`; //might use description instead of product
+                      productsName LIKE '%${keyword}%'`; //might use description instead of product
         
            if (query.category) { //user selected a category
               sql += " AND category = ?"; //To prevent SQL injection, SQL statement shouldn't have any product.
