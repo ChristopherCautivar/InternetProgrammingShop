@@ -1,7 +1,6 @@
 
 <!-- From Lab 10, incomplete, need app.js calls, ctrl-f "login" -->
 <% include partials/header.ejs %> 
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
         <script>
             $(document).ready(function() {
                 $("#loginBtn").on("click", function(){
@@ -16,7 +15,7 @@
                             if (!result){
                                 alert("Wrong credentials!");
                             }else{
-                                location.href = "/products"; //redirects to admin route
+                                location.href = "/searchProduct"; //redirects to admin route
                             }
                         }
                     });//ajax

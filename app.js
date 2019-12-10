@@ -56,6 +56,15 @@ app.post("/adminLoginProcess", function(req, res) {
     }
 });
 
+app.post("/userLoginProcess", function(req, res) {
+     if (req.body.username == "user1" && req.body.password == "password1") {
+       req.session.authenticated = true;
+       res.send({"loginSuccess":true});
+    } else {
+       res.send(false);
+    }
+});
+
 
 
 app.get("/logout", function(req, res){
@@ -254,7 +263,28 @@ function getStats(command){
     });//promise
 }//getStats func
 
+app.get("/searchProduct", async function(req, res){
 
+  let categories = await getCategories();
+  //console.log(categories);
+  res.render("searchProduct", {"categories":categories});
+
+});
+
+app.get("/cart", async function(req, res){
+
+  let categories = await getCategories();
+  //console.log(categories);
+  res.render("cart", {"categories":categories});
+
+});
+app.get("/checkout", async function(req, res){
+
+  let categories = await getCategories();
+  //console.log(categories);
+  res.render("checkout", {"categories":categories});
+
+});
 
 // from lab 9 user side of page
 app.get("/products", async function(req, res){
@@ -298,7 +328,8 @@ function getProductInfo(productID){
 function getProduct(query){
     
     let keyword = query.keyword;
-    
+    let category = query.category;
+    let price = query.price;
     let conn = dbConnection();
     
     return new Promise(function(resolve, reject){
@@ -310,16 +341,18 @@ function getProduct(query){
         
            let sql = `SELECT * FROM products
                       WHERE 
-                      productsName LIKE '%${keyword}%'`; //might use description instead of product
+                      productName LIKE '%${keyword}%'`; //might use description instead of product
         
            if (query.category) { //user selected a category
               sql += " AND category = ?"; //To prevent SQL injection, SQL statement shouldn't have any product.
+              params.push(query.category); 
            }
-           params.push(query.category);  
+            
            if (query.price) { //user selected a category
               sql += " AND price = ?"; //To prevent SQL injection, SQL statement shouldn't have any product.
+              params.push(query.price);
            }
-           params.push(query.price);
+           
            
         
            console.log("SQL:", sql)
