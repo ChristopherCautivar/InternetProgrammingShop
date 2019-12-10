@@ -18,6 +18,22 @@ function myMiddleware(req, res, next){
     next(); // passes control to back to server to do the next thing.
 }
 
+function isAdminAuthenticated(req, res, next){
+    if(!req.session.adminAuthenticated){
+        res.redirect('/adminLogin');
+    } else {
+        next();
+    }
+}
+
+function isUserAuthenticated(req, res, next){
+    if(!req.session.userAuthenticated){
+        res.redirect('/userLogin');
+    } else {
+        next();
+    }
+}
+
 //routes
 app.get("/", function(req, res){
 
@@ -35,7 +51,7 @@ app.get("/adminLogin", async function(req, res)
 
 
 // from lab 10, admin side of page
-app.get("/admin", async function(req, res){
+app.get("/admin", isAdminAuthenticated, async function(req, res){
     console.log("authenticated: ", req.session.authenticated);
     if (req.session.adminAuthenticated){ 
         let productList = await getproductList();
@@ -69,14 +85,14 @@ app.get("/logout", function(req, res){
     req.session.destroy();
     res.redirect("/");   //taking user back to login screen
 });
-app.get("/addProduct", function(req, res){
+app.get("/addProduct", isAdminAuthenticated, function(req, res){
     if (req.session.adminAuthenticated){ 
         res.render("newProduct");
     }else{                                    //if user hasn't authenticated
         res.render("adminLogin");                  //send them to the login screen
     }
 });
-app.post("/addProduct", async function(req, res){
+app.post("/addProduct", isAdminAuthenticated, async function(req, res){
     let rows = await insertProduct(req.body);
     console.log(rows);
     // res.send("First Name: " + req.body.firstName);  //When POST method info is stored in req.body
@@ -86,7 +102,7 @@ app.post("/addProduct", async function(req, res){
         res.render("newProduct", {"message":message});
     }
 });
-app.get("/updateProduct", async function(req, res){
+app.get("/updateProduct", isAdminAuthenticated, async function(req, res){
     if (req.session.adminAuthenticated){ 
         let productInfo = await getProductInfo2(req.query.productID);
         console.log(productInfo);
@@ -95,7 +111,7 @@ app.get("/updateProduct", async function(req, res){
         res.render("adminLogin");                  //send them to the login screen
     }
 });
-app.post("/updateProduct", async function(req, res){
+app.post("/updateProduct", isAdminAuthenticated, async function(req, res){
     let rows = await updateProduct(req.body);
     let productInfo = req.body;
     console.log(rows);
@@ -106,7 +122,7 @@ app.post("/updateProduct", async function(req, res){
         res.render("updateProduct", {"message":message, "productInfo":productInfo});
     }
 });
-app.get("/deleteProduct", async function(req, res){
+app.get("/deleteProduct", isAdminAuthenticated, async function(req, res){
     let rows = await deleteProduct(req.query.productID);
     console.log(rows);
     let message = "Product WAS NOT deleted!";
@@ -118,11 +134,11 @@ app.get("/deleteProduct", async function(req, res){
 });
 
 
-app.post("/stats", async function(req, res) {
+app.post("/stats", isAdminAuthenticated, async function(req, res) {
     res.send(await getStats(req.body.command));
 });
 
-app.get("/adminStats", function(req, res){
+app.get("/adminStats", isAdminAuthenticated, function(req, res){
 
     res.render("adminStatistics");
 
@@ -261,7 +277,7 @@ function getStats(command){
     });//promise
 }//getStats func
 
-app.get("/searchProduct", async function(req, res){
+app.get("/searchProduct", isUserAuthenticated, async function(req, res){
 
   let categories = await getCategories();
   //console.log(categories);
@@ -269,14 +285,19 @@ app.get("/searchProduct", async function(req, res){
 
 });
 
-app.get("/cart", async function(req, res){
-
-  let categories = await getCategories();
-  //console.log(categories);
-  res.render("cart", {"categories":categories});
+app.get("/cart", isUserAuthenticated, async function(req, res){
+//   console.log("happens")
+  let items = await getCart();
+//   console.log(items);
+  let total = 0;
+  items.forEach(function(item){
+      total += item["price"]*item["quantity"]
+  })
+  res.render("cart", {"items":items, "total":total});
 
 });
-app.get("/checkout", async function(req, res){
+
+app.get("/checkout", isUserAuthenticated, async function(req, res){
 
   let categories = await getCategories();
   //console.log(categories);
@@ -285,14 +306,14 @@ app.get("/checkout", async function(req, res){
 });
 
 // from lab 9 user side of page
-app.get("/products", async function(req, res){
+app.get("/products", isUserAuthenticated, async function(req, res){
 
   let rows = await getProduct(req.query);
   res.render("products", {"records":rows});
 
 });//product
 
-app.get("/productInfo", async function(req, res){
+app.get("/productInfo", isUserAuthenticated, async function(req, res){
     
    let rows = await getProductInfo(req.query.productID);
   //res.render("products", {"records":rows});
@@ -391,6 +412,29 @@ function getCategories(){
     });//promise
     
 }//getCategories
+
+function getCart(){
+    
+    let conn = dbConnection();
+    
+    return new Promise(function(resolve, reject){
+        conn.connect(function(err) {
+           if (err) throw err;
+           console.log("Connected!");
+        
+           let sql = `select productID, quantity, productName, price from users natural join cart natural join cartItems natural join products where userID = "2"`;
+        
+           conn.query(sql, function (err, rows, fields) {
+              if (err) throw err;
+              //res.send(rows);
+              conn.end();
+              resolve(rows);
+           });
+        
+        });//connect
+    });//promise
+    
+}//getCart
 
 //values in red must be updated
 function dbConnection(){

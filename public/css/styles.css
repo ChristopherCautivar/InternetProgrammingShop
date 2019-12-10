@@ -45,8 +45,7 @@ html {
 }
 
 footer {
-    float:right;
-    text-align: right;
+    text-align: center;
     display:flex;
     right:0px;
     background-image: url("../img/space2Db.jpg");
