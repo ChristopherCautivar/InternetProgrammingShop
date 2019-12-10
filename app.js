@@ -34,22 +34,20 @@ app.get("/adminLogin", async function(req, res)
 });
 
 
-
-
 // from lab 10, admin side of page
 app.get("/admin", async function(req, res){
     console.log("authenticated: ", req.session.authenticated);
-    if (req.session.authenticated){ 
+    if (req.session.adminAuthenticated){ 
         let productList = await getproductList();
         res.render("admin", {"productList":productList});                
     }else{                                    //if user hasn't authenticated
-        res.render("index");                  //send them to the login screen
+        res.render("adminLogin");                  //send them to the login screen
     }
 });
 
 app.post("/adminLoginProcess", function(req, res) {
      if (req.body.username == "admin" && req.body.password == "secret") {
-       req.session.authenticated = true;
+       req.session.adminAuthenticated = true;
        res.send({"loginSuccess":true});
     } else {
        res.send(false);
@@ -58,7 +56,7 @@ app.post("/adminLoginProcess", function(req, res) {
 
 app.post("/userLoginProcess", function(req, res) {
      if (req.body.username == "user1" && req.body.password == "password1") {
-       req.session.authenticated = true;
+       req.session.userAuthenticated = true;
        res.send({"loginSuccess":true});
     } else {
        res.send(false);
@@ -72,10 +70,10 @@ app.get("/logout", function(req, res){
     res.redirect("/");   //taking user back to login screen
 });
 app.get("/addProduct", function(req, res){
-    if (req.session.authenticated){ 
+    if (req.session.adminAuthenticated){ 
         res.render("newProduct");
     }else{                                    //if user hasn't authenticated
-        res.render("index");                  //send them to the login screen
+        res.render("adminLogin");                  //send them to the login screen
     }
 });
 app.post("/addProduct", async function(req, res){
@@ -89,12 +87,12 @@ app.post("/addProduct", async function(req, res){
     }
 });
 app.get("/updateProduct", async function(req, res){
-    if (req.session.authenticated){ 
+    if (req.session.adminAuthenticated){ 
         let productInfo = await getProductInfo2(req.query.productID);
         console.log(productInfo);
         res.render("updateProduct", {"productInfo":productInfo});
     }else{                                    //if user hasn't authenticated
-        res.render("index");                  //send them to the login screen
+        res.render("adminLogin");                  //send them to the login screen
     }
 });
 app.post("/updateProduct", async function(req, res){
