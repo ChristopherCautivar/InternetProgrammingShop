@@ -79,7 +79,16 @@ app.post("/userLoginProcess", function(req, res) {
     }
 });
 
-
+app.post("/addToCart", isUserAuthenticated, async function(req, res){
+    let rows = await addToCart(req.body.product);
+    console.log(rows);
+    // res.send("First Name: " + req.body.firstName);  //When POST method info is stored in req.body
+    if (rows.affectedRows > 0) {
+        res.send({message:"Success!"})
+    } else {
+        res.send({message:"Failure!"})
+    }
+})
 
 app.get("/logout", function(req, res){
     req.session.destroy();
@@ -175,6 +184,25 @@ function getproductList(){
                         FROM products 
                         ORDER BY productName`;
             conn.query(sql, function (err, rows, fields) {
+              if (err) throw err;
+              //res.send(rows);
+              conn.end();
+              resolve(rows);
+           });
+        });//connect
+    });//promise
+}
+function addToCart(productID){
+    let conn = dbConnection();
+    return new Promise(function(resolve, reject){
+        conn.connect(function(err) {
+            if (err) throw err;
+            console.log("Connected!");
+            //TODO watch out
+            let sql = `INSERT INTO cartItems 
+                        (cartID, productID, quantity, priceAtPurchase) 
+                        VALUES (?,?,?,?)`;
+            conn.query(sql, [1, productID, 1, 0], function (err, rows, fields) {
               if (err) throw err;
               //res.send(rows);
               conn.end();

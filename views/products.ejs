@@ -23,6 +23,19 @@
     //             });//ajax
     //         })
     // });
+            $(document).ready(function() {
+                $(".add").on("click", function(){
+                    $.ajax({
+                        method: "POST",
+                        url: "/addToCart",
+                        dataType: "json",
+                        data: { "product":this.id},
+                        success: function(result,status) {
+                            alert(result["message"]);
+                        }
+                    });//ajax
+                }); //click
+            }); //document.ready
     </script>
     </head>
     
@@ -33,10 +46,10 @@
         <% records.forEach( function(record){ %> 
         
             <i><%= record.productName %></i> <br>
-            <a href="#"  id="<%= record.productID %>" name="<%= record.productId %>">-<%= record.productName %>  <%= record.price %> <%= record.category %> </a>
-            <form action = /cart>
-            <button> Add to cart </button>
-            </form>
+            Description: <%=record.description%><br>
+            Category: <%=record.category%><br>
+            Price: $<%=record.price%><br>
+            <button id="<%= record.productID %>" class="add"> Add to cart </button>
             <br><br>
         <% })  %>
         
