@@ -273,6 +273,24 @@ function deleteProduct(productID){
         });//connect
     });//promise
 }
+function clearCart(productID){
+    let conn = dbConnection();
+    return new Promise(function(resolve, reject){
+        conn.connect(function(err) {
+            if (err) throw err;
+            console.log("Connected!");
+            let sql = `DELETE FROM cartItems 
+                        WHERE cartID = ?`;
+            let params = [1]; 
+            conn.query(sql, params, function (err, rows, fields) {
+              if (err) throw err;
+              //res.send(rows);
+              conn.end();
+              resolve(rows);
+           });
+        });//connect
+    });//promise
+}
 
 function getStats(command){
     
@@ -327,7 +345,7 @@ app.get("/cart", isUserAuthenticated, async function(req, res){
 
 app.get("/checkout", isUserAuthenticated, async function(req, res){
 
-  let categories = await getCategories();
+  let categories = await clearCart();
   //console.log(categories);
   res.render("checkout", {"categories":categories});
 
